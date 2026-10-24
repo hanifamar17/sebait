@@ -1,0 +1,59 @@
+/* Token gaya shadcn. data-theme = keluarga warna, data-mode = light | dark.
+   Teks sengaja bukan hitam pekat; latar gelap bukan hitam. */
+
+/* ---- terang ---- */
+:root, [data-theme="embun"] {
+  --background: #e9eff1; --card: #dde6ea; --foreground: #2a3d47;
+  --muted-foreground: #5a6d77; --border: #c5d1d6; --accent: #1f6577; --ring: #1f6577;
+  --radius: 0.5rem;
+}
+[data-theme="senja"] {
+  --background: #efe4e8; --card: #e4d6dc; --foreground: #43303c;
+  --muted-foreground: #75606c; --border: #d0bec7; --accent: #9a3558; --ring: #9a3558;
+}
+[data-theme="lumut"] {
+  --background: #e5ebe3; --card: #d8e0d6; --foreground: #2f4236;
+  --muted-foreground: #5a6b5e; --border: #bfccbd; --accent: #3a6a45; --ring: #3a6a45;
+}
+[data-theme="tanah"] {
+  --background: #f6f2ec; --card: #ebe4d9; --foreground: #3b332c;
+  --muted-foreground: #75695d; --border: #d8cdbf; --accent: #9a5a30; --ring: #9a5a30;
+}
+
+/* ---- gelap ---- */
+[data-mode="dark"] { color-scheme: dark; }
+[data-theme="embun"][data-mode="dark"] {
+  --background: #1d2a30; --card: #263640; --foreground: #dbe5e9;
+  --muted-foreground: #8fa3ad; --border: #36484f; --accent: #6fb3c6; --ring: #6fb3c6;
+}
+[data-theme="senja"][data-mode="dark"] {
+  --background: #2b2229; --card: #372c34; --foreground: #eddfe5;
+  --muted-foreground: #a6919d; --border: #46383f; --accent: #e08aa8; --ring: #e08aa8;
+}
+[data-theme="lumut"][data-mode="dark"] {
+  --background: #202a23; --card: #2a362d; --foreground: #dfe8dd;
+  --muted-foreground: #94a597; --border: #3a493d; --accent: #8fc79b; --ring: #8fc79b;
+}
+[data-theme="tanah"][data-mode="dark"] {
+  --background: #2b2520; --card: #373029; --foreground: #ede4da;
+  --muted-foreground: #a39484; --border: #473e35; --accent: #d98c5f; --ring: #d98c5f;
+}
+
+body { transition: background-color .4s ease, color .4s ease; }
+.poem { transition: opacity .35s ease; }
+.poem[data-loading="true"] { opacity: 0; }
+@media (prefers-reduced-motion: reduce) {
+  body, .poem { transition: none; }
+}
+
+/* Mode bersih */
+html[data-clean="true"] .clean-hide {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+html:not([data-clean="true"]) .clean-hide {
+  opacity: 1;
+  pointer-events: auto;
+  transition: opacity 0.3s ease;
+}

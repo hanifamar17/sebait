@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% from "_button.html" import btn, lnk with context %}
+{% block content %}
+{% include "_poem.html" %}
+<div class="mt-10 flex items-center gap-6 clean-hide">
+  <button id="again" type="button" class="{{ btn }}">Puisi lain</button>
+  <a id="story-link" href="{{ url_for('puisi', seed=p.seed) }}" class="{{ lnk }}">Jadikan story</a>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+  const poem = document.getElementById("poem");
+  const source = document.getElementById("source");
+  const link = document.getElementById("story-link");
+  const btn = document.getElementById("again");
+
+  // sama dengan _poem.html
+  const lineClass = i => i === 0 ? "font-semibold tracking-tight" : "mt-2 italic text-accent";
+
+  async function again() {
+    btn.disabled = true;
+    poem.dataset.loading = "true";
+    try {
+      const [res] = await Promise.all([fetch("/api/puisi"), new Promise(r => setTimeout(r, 350))]);
+      if (!res.ok) throw new Error(res.status);
+      const p = await res.json();
+      poem.replaceChildren(...p.lines.map((t, i) => {
+        const el = document.createElement("p");
+        el.className = lineClass(i);
+        el.textContent = t;
+        return el;
+      }));
+      source.textContent = p.source;
+      link.href = "/puisi/" + p.seed;
+      document.documentElement.dataset.theme = p.theme;
+      history.replaceState(null, "", "/?s=" + p.seed);
+    } catch (e) {
+      poem.textContent = "Gagal memuat puisi. Coba lagi.";
+    } finally {
+      poem.dataset.loading = "false";
+      btn.disabled = false;
+    }
+  }
+  btn.addEventListener("click", again);
+</script>
+{% endblock %}

@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% from "_button.html" import btn, lnk with context %}
+{% block title %}Puisi {{ p.seed }}{% endblock %}
+{% block content %}
+  <div class="mx-auto w-full max-w-[300px]">
+    <a href="{{ url_for('index', s=p.seed) }}" class="{{ lnk }}">Kembali</a>
+    <canvas id="story" class="mt-6 w-full rounded-md" style="aspect-ratio: 9 / 16" aria-label="Pratinjau kartu story"></canvas>
+    <div class="mt-6">
+      <button id="download" type="button" class="{{ btn }}">Unduh PNG</button>
+    </div>
+  </div>
+  <script type="application/json" id="data">{{ p|tojson }}</script>
+{% endblock %}
+{% block scripts %}
+<script src="{{ url_for('static', filename='story.js') }}"></script>
+{% endblock %}
