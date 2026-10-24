@@ -105,7 +105,8 @@ Baris ketiga.
 
 ## Lisensi
 
-Proyek ini menerapkan ketentuan lisensi terpisah untuk kode sumber dan konten bait:
+## Hak Cipta & Lisensi
 
-* **Kode Sumber:** Dilisensikan di bawah [MIT License](LICENSE). Anda diizinkan untuk mengunduh, mengubah, dan mendistribusikan ulang kode program ini.
-* **Koleksi Teks/Bait Puisi:** Seluruh teks puisi yang dihasilkan oleh kecerdasan buatan (AI) di dalam direktori `bait/` dilepaskan ke domain publik di bawah lisensi [Creative Commons Zero v1.0 Universal (CC0 1.0)](https://creativecommons.org/publicdomain/zero/1.0/).#
+© 2026 Hanif Amar. Hak Cipta Dilindungi Undang-Undang (*All Rights Reserved*).
+
+Kode sumber dan konten dalam repositori ini disediakan hanya untuk keperluan demonstrasi/portofolio. Anda tidak diperkenankan untuk menyalin, memodifikasi, mendistribusikan, atau menggunakan kode ini tanpa izin tertulis dari pemilik hak cipta.
