@@ -1,16 +1,18 @@
 {% extends "base.html" %}
 {% from "_button.html" import btn, lnk with context %}
-{% block title %}Puisi {{ p.seed }}{% endblock %}
+{% block title %}Kartu story · {{ SITE_NAME }}{% endblock %}
 {% block content %}
   <div class="mx-auto w-full max-w-[300px]">
-    <a href="{{ url_for('index', s=p.seed) }}" class="{{ lnk }}">Kembali</a>
+    <a href="{{ p.back }}" class="{{ lnk }}">Kembali</a>
     <canvas id="story" class="mt-6 w-full rounded-md" style="aspect-ratio: 9 / 16" aria-label="Pratinjau kartu story"></canvas>
-    <div class="mt-6">
+    <div class="mt-6 flex flex-wrap items-center justify-between gap-x-4 gap-y-4">
       <button id="download" type="button" class="{{ btn }}">Unduh PNG</button>
+      {% set current = p.theme %}{% include "_palet.html" %}
     </div>
   </div>
   <script type="application/json" id="data">{{ p|tojson }}</script>
 {% endblock %}
 {% block scripts %}
+<script src="{{ url_for('static', filename='palet.js') }}"></script>
 <script src="{{ url_for('static', filename='story.js') }}"></script>
 {% endblock %}

@@ -1,0 +1,173 @@
+{% extends "base.html" %}
+{% from "_button.html" import btn, lnk with context %}
+{% block title %}Tulis bait · {{ SITE_NAME }}{% endblock %}
+{% block content %}
+  {# pratinjau: tampil seperti di beranda, diisi oleh script di bawah #}
+  <div id="poem" class="poem font-poem text-3xl leading-[1.3] sm:text-4xl" aria-live="polite"></div>
+  <p id="source" class="mt-8 text-sm text-muted-foreground empty:hidden"></p>
+
+  <form id="form" method="post" action="{{ url_for('tulis') }}" class="mt-10 space-y-4"
+    data-max="{{ max_chars }}" data-lines="{{ max_lines }}" data-stars="{{ star_max }}" novalidate>
+    <div>
+      <div class="flex items-baseline justify-between">
+        <label for="bait" class="text-sm text-muted-foreground">Bait</label>
+        <div class="flex items-baseline gap-4">
+          <button id="em" type="button" class="{{ lnk }}" title="Miring berwarna untuk teks terpilih (atau baris ini)">Miring</button>
+          <span class="text-sm tabular-nums text-muted-foreground"><span id="count">0</span> / {{ max_chars }}</span>
+        </div>
+      </div>
+      <textarea id="bait" name="bait" rows="3" spellcheck="false" autofocus
+        placeholder="Tulis baitmu. Enter untuk baris baru."
+        aria-describedby="error"
+        class="mt-1.5 block w-full resize-none rounded-md border border-border bg-transparent px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background">{{ text }}</textarea>
+      <p class="mt-1.5 text-xs text-muted-foreground">*kata* = miring berwarna. Tanpa tanda: baris 1 tebal, sisanya miring.</p>
+    </div>
+
+    <div>
+      <label for="sumber" class="text-sm text-muted-foreground">Sumber</label>
+      <input id="sumber" name="sumber" type="text" value="{{ sumber }}" maxlength="{{ source_max }}"
+        autocomplete="off" placeholder="Nama atau judul (opsional)"
+        class="mt-1.5 block w-full rounded-md border border-border bg-transparent px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background">
+    </div>
+
+    <div>
+      <span class="text-sm text-muted-foreground">Warna</span>
+      <div class="mt-2">
+        {% set current = tema %}{% include "_palet.html" %}
+      </div>
+      <input type="hidden" id="tema" name="tema" value="{{ tema }}">
+    </div>
+
+    <p id="error" role="alert" class="min-h-5 text-sm text-accent">{{ error or "" }}</p>
+
+    <div class="flex flex-wrap items-center gap-x-6 gap-y-3">
+      <button type="submit" name="aksi" value="tampil" class="{{ btn }}">Tampilkan</button>
+      <button type="submit" name="aksi" value="story" class="{{ lnk }}">Jadikan story</button>
+      <a href="{{ url_for('index') }}" class="{{ lnk }}">Kembali</a>
+    </div>
+  </form>
+{% endblock %}
+{% block scripts %}
+<script src="{{ url_for('static', filename='palet.js') }}"></script>
+<script>
+  const form = document.getElementById("form");
+  const MAX = Number(form.dataset.max), MAX_LINES = Number(form.dataset.lines), MAX_STARS = Number(form.dataset.stars);
+  const ta = document.getElementById("bait");
+  const src = document.getElementById("sumber");
+  const poem = document.getElementById("poem");
+  const source = document.getElementById("source");
+  const count = document.getElementById("count");
+  const err = document.getElementById("error");
+  const emBtn = document.getElementById("em");
+
+  // karakter yang dihitung: tanpa Enter dan tanda *, per karakter (bukan unit UTF-16): sama dengan server
+  const size = v => [...v.replace(/[\n*]/g, "")].length;
+
+  // "aku *rindu* kamu" -> bagian ganjil = miring berwarna
+  const styleRuns = l => l.split("*").map((t, i) => ({ t, em: i % 2 === 1 })).filter(r => r.t);
+
+  function render() {
+    const lines = ta.value.split("\n").map(l => l.replace(/\s+/g, " ").trim()).filter(l => l.replace(/\*/g, "").trim());
+    const markup = lines.some(l => l.includes("*"));  // ada tanda = penulis yang mengatur gaya
+    poem.replaceChildren(...(lines.length ? lines.map((l, i) => {
+      const p = document.createElement("p");
+      if (i) p.className = "mt-2";
+      for (const r of markup ? styleRuns(l) : [{ t: l, em: i > 0 }]) {
+        const s = document.createElement("span");
+        s.className = r.em ? "italic text-accent" : "font-semibold tracking-tight";
+        s.textContent = r.t;
+        p.append(s);
+      }
+      return p;
+    }) : [Object.assign(document.createElement("p"), { className: "italic text-muted-foreground", textContent: "Baitmu muncul di sini." })]));
+    source.textContent = src.value.trim().replace(/\s+/g, " ");
+  }
+
+  // Batasi baris dan karakter. Kelebihan dibuang dari teks yang BARU diketik/ditempel
+  // (tepat sebelum kursor), bukan dari ujung teks, supaya baris lain tidak rusak.
+  function sanitize() {
+    let v = ta.value.replace(/\r\n?/g, "\n");
+    let pos = ta.selectionStart;
+
+    while (v.split("\n").length > MAX_LINES) {  // kelebihan baris (paste): Enter terdekat jadi spasi
+      let i = v.lastIndexOf("\n", Math.max(pos - 1, 0));
+      if (i < 0) i = v.lastIndexOf("\n");
+      v = v.slice(0, i) + " " + v.slice(i + 1);
+    }
+
+    let over = size(v) - MAX;
+    if (over > 0) {
+      const kept = [];
+      const head = [...v.slice(0, pos)];
+      for (let k = head.length - 1; k >= 0; k--) {
+        const ch = head[k];
+        if (over > 0 && ch !== "\n" && ch !== "*") { over--; continue; }
+        kept.push(ch);
+      }
+      const nh = kept.reverse().join("");
+      const tail = [...v.slice(pos)];
+      for (let k = tail.length - 1; k >= 0 && over > 0; k--) {
+        if (tail[k] !== "\n" && tail[k] !== "*") { tail.splice(k, 1); over--; }
+      }
+      v = nh + tail.join("");
+      pos = nh.length;
+    }
+
+    let stars = (v.match(/\*/g) || []).length;
+    while (stars-- > MAX_STARS) {
+      const i = v.lastIndexOf("*");
+      v = v.slice(0, i) + v.slice(i + 1);
+      if (i < pos) pos--;
+    }
+
+    if (v !== ta.value) { ta.value = v; ta.setSelectionRange(pos, pos); }
+    const n = size(v);
+    count.textContent = n;
+    count.classList.toggle("font-medium", n >= MAX);
+    count.classList.toggle("text-foreground", n >= MAX);
+    ta.style.height = "auto";  // kotak tumbuh mengikuti isi (minimal 3 baris)
+    ta.style.height = ta.scrollHeight + 2 + "px";
+  }
+
+  // Tombol Miring: bungkus teks terpilih dengan *...* (tanpa pilihan: seluruh baris kursor). Klik lagi = lepas.
+  function toggleEm() {
+    let a = ta.selectionStart, b = ta.selectionEnd;
+    const v = ta.value;
+    if (a === b) {
+      a = a === 0 ? 0 : v.lastIndexOf("\n", a - 1) + 1;
+      const e = v.indexOf("\n", b);
+      b = e < 0 ? v.length : e;
+    }
+    const sel = v.slice(a, b);
+    if (!sel.replace(/\*/g, "").trim()) return;
+    const next = sel.includes("*")
+      ? sel.replaceAll("*", "")
+      : sel.split("\n").map(l => l.trim() ? l.replace(/^(\s*)([\s\S]*?)(\s*)$/, "$1*$2*$3") : l).join("\n");
+    ta.setRangeText(next, a, b, "select");
+    ta.dispatchEvent(new Event("input", { bubbles: true }));
+    ta.focus();
+  }
+  emBtn.addEventListener("pointerdown", e => e.preventDefault());  // jangan lepas fokus dan pilihan teks
+  emBtn.addEventListener("click", toggleEm);
+
+  ta.addEventListener("input", () => { err.textContent = ""; sanitize(); render(); });
+  src.addEventListener("input", () => { err.textContent = ""; render(); });
+
+  ta.addEventListener("keydown", e => {
+    if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) { e.preventDefault(); form.requestSubmit(); return; }
+    // Enter = baris baru, kecuali sudah mentok di batas baris
+    if (e.key === "Enter" && ta.value.split("\n").length >= MAX_LINES) e.preventDefault();
+  });
+
+  form.addEventListener("submit", e => {
+    if (!ta.value.split("\n").some(l => l.replace(/\*/g, "").trim())) {
+      e.preventDefault();
+      err.textContent = "Tulis dulu minimal satu baris.";
+      ta.focus();
+    }
+  });
+
+  sanitize();
+  render();
+</script>
+{% endblock %}

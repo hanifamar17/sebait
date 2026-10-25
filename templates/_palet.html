@@ -1,0 +1,10 @@
+{# pilihan palet. butuh variabel `current` (nama palet aktif). tiap tombol membawa data-theme sendiri, jadi warnanya otomatis milik palet itu #}
+<div class="flex items-center gap-2.5" role="group" aria-label="Palet warna">
+  {% for t in THEMES %}
+  <button type="button" data-theme="{{ t }}" data-pick="{{ t }}" title="{{ t }}" aria-label="Palet {{ t }}"
+    aria-pressed="{{ 'true' if t == current else 'false' }}"
+    class="inline-flex h-7 w-7 items-center justify-center rounded-full border border-border bg-background transition-shadow focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground aria-pressed:ring-2 aria-pressed:ring-foreground">
+    <span class="block h-3 w-3 rounded-full bg-accent"></span>
+  </button>
+  {% endfor %}
+</div>

@@ -2,9 +2,10 @@
 {% from "_button.html" import btn, lnk with context %}
 {% block content %}
 {% include "_poem.html" %}
-<div class="mt-10 flex items-center gap-6 clean-hide">
+<div class="mt-10 flex flex-wrap items-center gap-x-6 gap-y-3 clean-hide">
   <button id="again" type="button" class="{{ btn }}">Puisi lain</button>
-  <a id="story-link" href="{{ url_for('puisi', seed=p.seed) }}" class="{{ lnk }}">Jadikan story</a>
+  <a id="story-link" href="{{ p.story }}" class="{{ lnk }}">Jadikan story</a>
+  <a href="{{ p.edit }}" class="{{ lnk }}">{{ "Sunting" if p.token else "Tulis bait" }}</a>
 </div>
 {% endblock %}
 {% block scripts %}

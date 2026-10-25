@@ -22,19 +22,19 @@
 
 /* ---- gelap ---- */
 [data-mode="dark"] { color-scheme: dark; }
-[data-theme="embun"][data-mode="dark"] {
+:is([data-theme="embun"][data-mode="dark"], [data-mode="dark"] [data-theme="embun"]) {
   --background: #1d2a30; --card: #263640; --foreground: #dbe5e9;
   --muted-foreground: #8fa3ad; --border: #36484f; --accent: #6fb3c6; --ring: #6fb3c6;
 }
-[data-theme="senja"][data-mode="dark"] {
+:is([data-theme="senja"][data-mode="dark"], [data-mode="dark"] [data-theme="senja"]) {
   --background: #2b2229; --card: #372c34; --foreground: #eddfe5;
   --muted-foreground: #a6919d; --border: #46383f; --accent: #e08aa8; --ring: #e08aa8;
 }
-[data-theme="lumut"][data-mode="dark"] {
+:is([data-theme="lumut"][data-mode="dark"], [data-mode="dark"] [data-theme="lumut"]) {
   --background: #202a23; --card: #2a362d; --foreground: #dfe8dd;
   --muted-foreground: #94a597; --border: #3a493d; --accent: #8fc79b; --ring: #8fc79b;
 }
-[data-theme="tanah"][data-mode="dark"] {
+:is([data-theme="tanah"][data-mode="dark"], [data-mode="dark"] [data-theme="tanah"]) {
   --background: #2b2520; --card: #373029; --foreground: #ede4da;
   --muted-foreground: #a39484; --border: #473e35; --accent: #d98c5f; --ring: #d98c5f;
 }
