@@ -1,5 +1,5 @@
-{# pilihan palet. butuh variabel `current` (nama palet aktif). tiap tombol membawa data-theme sendiri, jadi warnanya otomatis milik palet itu #}
-<div class="flex items-center gap-2.5" role="group" aria-label="Palet warna">
+{# pilihan palet. butuh variabel `current` (nama palet aktif); `vertical` = true untuk susunan turun. tiap tombol membawa data-theme sendiri, jadi warnanya otomatis milik palet itu #}
+<div class="flex {{ 'flex-col' if vertical else 'items-center' }} gap-2.5" role="group" aria-label="Palet warna">
   {% for t in THEMES %}
   <button type="button" data-theme="{{ t }}" data-pick="{{ t }}" title="{{ t }}" aria-label="Palet {{ t }}"
     aria-pressed="{{ 'true' if t == current else 'false' }}"

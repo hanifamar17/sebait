@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+{% from "_button.html" import btn, lnk with context %}
+{% block title %}Tersimpan · {{ SITE_NAME }}{% endblock %}
+{% block content %}
+<a href="{{ url_for('index') }}" class="{{ lnk }}">Kembali</a>
+
+<ul id="list" class="mt-6 divide-y divide-border"></ul>
+<p id="kosong" class="mt-8 hidden text-muted-foreground">Belum ada yang disimpan.</p>
+{% endblock %}
+
+{% block scripts %}
+<style>
+    .fav-item {
+        transition: background-color .15s ease;
+    }
+
+    .fav-item:hover {
+        background-color: color-mix(in srgb, var(--foreground) 4%, transparent);
+    }
+
+    .fav-item:active {
+        background-color: color-mix(in srgb, var(--foreground) 7%, transparent);
+    }
+
+    .fav-del {
+        opacity: 0.45;
+        transition: opacity .15s ease, color .15s ease, transform .1s ease;
+    }
+
+    .fav-item:hover .fav-del,
+    .fav-item:focus-within .fav-del {
+        opacity: 0.85;
+    }
+
+    .fav-del:hover {
+        opacity: 1;
+        color: var(--foreground);
+    }
+
+    .fav-del:active {
+        transform: scale(0.9);
+    }
+</style>
+<script>
+    const list = document.getElementById("list");
+    const empty = document.getElementById("kosong");
+    const el = (tag, cls, text) => Object.assign(document.createElement(tag), { className: cls, textContent: text ?? "" });
+
+    function render() {
+        const items = Fav.list();
+        empty.classList.toggle("hidden", items.length > 0);
+
+        list.replaceChildren(...items.map(f => {
+            const li = el("li", "fav-item");
+            const row = el("div", "flex items-start gap-3 px-1 py-3.5");
+
+            const a = el("a", "min-w-0 flex-1 font-poem");
+            a.href = f.url;
+
+            a.append(el("p", "text-[15px] font-normal leading-snug text-foreground", f.lines[0]));
+
+            if (f.lines.length > 1) {
+                const sub = el("p", "mt-0.5 text-[13px] font-normal leading-snug text-muted-foreground line-clamp-2");
+                sub.textContent = f.lines.slice(1).join(" · ");
+                a.append(sub);
+            }
+
+            if (f.source) {
+                a.append(el("p", "mt-1 text-xs text-muted-foreground/80", f.source));
+            }
+
+            // unbookmark
+            const del = document.createElement("button");
+            del.type = "button";
+            del.className = "fav-del shrink-0 p-1 -mr-1 text-accent";
+            del.setAttribute("aria-label", "Hapus dari tersimpan");
+            del.title = "Hapus dari tersimpan";
+            del.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>`;
+            del.addEventListener("click", e => {
+                e.preventDefault();
+                e.stopPropagation();
+                Fav.remove(f.key);
+            });
+
+            row.append(a, del);
+            li.append(row);
+            return li;
+        }));
+    }
+
+    document.addEventListener("favchange", render);
+    render();
+</script>
+{% endblock %}

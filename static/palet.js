@@ -7,6 +7,7 @@
   const mark = t => picks.forEach(b => b.setAttribute("aria-pressed", String(b.dataset.pick === t)));
 
   mark(root.dataset.theme);
+  window.addEventListener("themechange", () => mark(root.dataset.theme));  // mis. 'Puisi lain' mengganti palet
   picks.forEach(b => b.addEventListener("click", () => {
     root.dataset.theme = b.dataset.pick;
     if (input) input.value = b.dataset.pick;

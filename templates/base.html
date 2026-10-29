@@ -15,8 +15,7 @@
   </script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,600;1,6..72,400&display=swap"
-    rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,600;1,6..72,400&display=swap" rel="stylesheet">
   <script src="https://cdn.tailwindcss.com/3.4.17"></script>
   <script>
     tailwind.config = {
@@ -38,10 +37,23 @@
     };
   </script>
   <link rel="stylesheet" href="{{ url_for('static', filename='app.css') }}">
+
+  {% set og_t = p.lines[0]|replace("_", "") if p is defined and p.lines else SITE_NAME %}
+  {# satu baris: kalau dipecah, deskripsi ikut berisi baris baru #}
+  {% set og_d = (p.lines[1:]|join(" ")|replace("_", "")) if p is defined and p.lines else "Bait pendek untuk dibaca, ditulis, dan dibagikan." %}
+  {% set og_d = og_d + (" — " + p.source if p is defined and p.source else "") %}
+  <meta name="description" content="{{ og_d or og_t }}">
+  <meta property="og:site_name" content="{{ SITE_NAME }}">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="{{ og_t }}">
+  <meta property="og:description" content="{{ og_d or SITE_NAME }}">
+  <link rel="manifest" href="{{ url_for('static', filename='manifest.webmanifest') }}">
+  <link rel="icon" type="image/png" href="{{ url_for('static', filename='icon-192.png') }}">
+  <link rel="apple-touch-icon" href="{{ url_for('static', filename='icon-192.png') }}">
   {% block head %}{% endblock %}
 </head>
 
-<body class="min-h-screen bg-background text-foreground antialiased font-sans">
+<body class="min-h-dvh bg-background text-foreground antialiased font-sans">
   <!-- Mode terang/gelap -->
   <button id="mode" type="button" class="{{ lnk }} fixed right-6 top-6 clean-hide z-50 p-2"
     aria-label="Ganti mode terang atau gelap">
@@ -62,11 +74,15 @@
       <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7" />
     </svg>
   </button>
-  <main class="flex min-h-screen items-center justify-center px-6 py-20">
+
+  <a id="fav-link" href="{{ url_for('tersimpan') }}" class="{{ lnk }} clean-hide fixed left-6 top-6 hidden">Tersimpan</a>
+  <main class="flex min-h-dvh items-center justify-center px-6 py-12">
     <div class="w-full max-w-lg">
       {% block content %}{% endblock %}
     </div>
   </main>
+
+  <script src="{{ url_for('static', filename='fav.js') }}"></script>
   <script src="{{ url_for('static', filename='theme.js') }}"></script>
   {% block scripts %}{% endblock %}
 </body>

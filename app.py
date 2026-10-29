@@ -25,7 +25,8 @@ THEME_BY_SOURCE = {
 # Kartu story mengecilkan huruf otomatis kalau teks panjang, jadi aman sampai ratusan karakter.
 MAX_CHARS = 160   # jumlah karakter (Enter tidak dihitung)
 MAX_LINES = 8     # jumlah baris
-STAR_MAX = 24     # jumlah tanda * (penanda gaya miring), tidak dihitung sebagai karakter
+MARK = "_"        # penanda gaya: _kata_ = miring berwarna (tidak dihitung sebagai karakter)
+MARK_MAX = 24     # jumlah tanda
 
 
 def load_bait() -> list[dict]:
@@ -83,28 +84,28 @@ SOURCE_MAX = 40
 
 def validate_bait(text: str) -> tuple[list[str], str | None]:
     """Bersihkan lalu validasi. Balik (baris, pesan_error | None).
-    Tanda * membungkus teks miring berwarna: 'aku *rindu* kamu'. Tanda tidak dihitung."""
+    MARK membungkus teks miring berwarna: 'aku _rindu_ kamu'. Tanda tidak dihitung."""
     text = (text or "").replace("\r\n", "\n").replace("\r", "\n")
     text = re.sub(r"[\x00-\x08\x0b-\x1f\x7f]", "", text)  # buang karakter kontrol
     lines = [re.sub(r"\s+", " ", l).strip() for l in text.split("\n")]
-    lines = [l for l in lines if l.replace("*", "").strip()]  # buang baris kosong / hanya tanda
-    total = sum(len(l.replace("*", "")) for l in lines)
+    lines = [l for l in lines if l.replace(MARK, "").strip()]  # buang baris kosong / hanya tanda
+    total = sum(len(l.replace(MARK, "")) for l in lines)
     if not lines:
         return lines, "Tulis dulu minimal satu baris."
     if total < 3:
         return lines, "Terlalu pendek."
     if len(lines) > MAX_LINES:
         return lines, f"Maksimal {MAX_LINES} baris."
-    if sum(l.count("*") for l in lines) > STAR_MAX:
-        return lines, f"Terlalu banyak tanda *, maksimal {STAR_MAX}."
+    if sum(l.count(MARK) for l in lines) > MARK_MAX:
+        return lines, f"Terlalu banyak tanda {MARK}, maksimal {MARK_MAX}."
     if total > MAX_CHARS:
         return lines, f"Terlalu panjang: {total} dari {MAX_CHARS} karakter."
     return lines, None
 
 
 def style_runs(line: str) -> list[dict]:
-    """'aku *rindu* kamu' -> [{aku, em:F}, {rindu, em:T}, {kamu, em:F}]. Tanda dihitung per baris."""
-    return [{"t": t, "em": i % 2 == 1} for i, t in enumerate(line.split("*")) if t]
+    """'aku _rindu_ kamu' -> [{aku, em:F}, {rindu, em:T}, {kamu, em:F}]. Tanda dihitung per baris."""
+    return [{"t": t, "em": i % 2 == 1} for i, t in enumerate(line.split(MARK)) if t]
 
 
 def validate_source(text: str) -> tuple[str, str | None]:
@@ -150,10 +151,9 @@ def make_custom(token: str) -> dict | None:
         "theme": theme or THEMES[h % len(THEMES)],  # pilihan pengguna, atau acak dari isi
         "lines": lines,
     }
-    if any("*" in l for l in lines):
-        # penulis memilih sendiri teks miring: tanpa tanda = tebal, bertanda = miring berwarna
-        poem["markup"] = True
-        poem["runs"] = [style_runs(l) for l in lines]
+    # semua teks lurus dan tebal; penulis sendiri yang memilih bagian miring berwarna
+    poem["markup"] = True
+    poem["runs"] = [style_runs(l) for l in lines]
     return poem
 
 
@@ -200,6 +200,11 @@ def puisi_custom(token: str):
     return render_template("puisi.html", p=with_links(p))
 
 
+@app.get("/tersimpan")
+def tersimpan():
+    return render_template("tersimpan.html")  # daftar dibaca browser dari localStorage
+
+
 @app.get("/puisi")
 def puisi_random():
     return redirect(url_for("puisi", seed=new_seed()))
@@ -212,7 +217,7 @@ def inject_themes():
 
 @app.route("/tulis", methods=["GET", "POST"])
 def tulis():
-    ctx = {"max_chars": MAX_CHARS, "max_lines": MAX_LINES, "source_max": SOURCE_MAX, "star_max": STAR_MAX,
+    ctx = {"max_chars": MAX_CHARS, "max_lines": MAX_LINES, "source_max": SOURCE_MAX, "mark": MARK, "mark_max": MARK_MAX,
            "text": "", "sumber": "", "tema": THEMES[0], "error": None}
     if request.method == "POST":
         text, sumber = request.form.get("bait", ""), request.form.get("sumber", "")
