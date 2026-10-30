@@ -1,0 +1,16 @@
+@import "tailwindcss";
+
+/* mapping supaya class bg-background, text-accent, dll. jalan */
+@theme {
+  --color-background: var(--background);
+  --color-card: var(--card);
+  --color-foreground: var(--foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-border: var(--border);
+  --color-ring: var(--ring);
+
+  --radius-md: calc(var(--radius) - 2px);
+
+  --font-poem: "Newsreader", Georgia, serif;
+}

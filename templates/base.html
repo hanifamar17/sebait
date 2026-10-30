@@ -6,6 +6,11 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{% block title %}{{ SITE_NAME }}{% endblock %}</title>
+  
+  <!-- Tailwind CSS (dihasilkan oleh Tailwind CLI) -->
+  <link href="{{ url_for('static', filename='output.css') }}" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='app.css') }}">
+
   <script>
     try {
       document.documentElement.dataset.mode =
@@ -13,34 +18,17 @@
         (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
     } catch (e) { document.documentElement.dataset.mode = "light"; }
   </script>
+
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,600;1,6..72,400&display=swap" rel="stylesheet">
-  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
-  <script>
-    tailwind.config = {
-      theme: {
-        extend: {
-          colors: {
-            background: "var(--background)",
-            card: "var(--card)",
-            foreground: "var(--foreground)",
-            accent: "var(--accent)",
-            muted: { foreground: "var(--muted-foreground)" },
-            border: "var(--border)",
-            ring: "var(--ring)",
-          },
-          borderRadius: { md: "calc(var(--radius) - 2px)" },
-          fontFamily: { poem: ["Newsreader", "Georgia", "serif"] },
-        }
-      },
-    };
-  </script>
-  <link rel="stylesheet" href="{{ url_for('static', filename='app.css') }}">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,600;1,6..72,400&display=swap"
+    rel="stylesheet">
 
   {% set og_t = p.lines[0]|replace("_", "") if p is defined and p.lines else SITE_NAME %}
   {# satu baris: kalau dipecah, deskripsi ikut berisi baris baru #}
-  {% set og_d = (p.lines[1:]|join(" ")|replace("_", "")) if p is defined and p.lines else "Bait pendek untuk dibaca, ditulis, dan dibagikan." %}
+  {% set og_d = (p.lines[1:]|join(" ")|replace("_", "")) if p is defined and p.lines else "Bait pendek untuk dibaca,
+  ditulis, dan dibagikan." %}
   {% set og_d = og_d + (" — " + p.source if p is defined and p.source else "") %}
   <meta name="description" content="{{ og_d or og_t }}">
   <meta property="og:site_name" content="{{ SITE_NAME }}">
@@ -54,28 +42,36 @@
 </head>
 
 <body class="min-h-dvh bg-background text-foreground antialiased font-sans">
-  <!-- Mode terang/gelap -->
-  <button id="mode" type="button" class="{{ lnk }} fixed right-6 top-6 clean-hide z-50 p-2"
-    aria-label="Ganti mode terang atau gelap">
-    <svg id="mode-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
-      stroke-linecap="round" stroke-linejoin="round">
-      <!-- default: moon -->
-      <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
-    </svg>
-  </button>
 
-  <!-- Fullscreen / Focus (pojok kanan bawah) -->
+  <!-- Header blur (ikon tersimpan + mode) -->
+  <header id="top-bar" class="clean-hide fixed inset-x-0 top-0 z-50 flex items-center justify-between px-4 py-3
+           transition-[background-color,backdrop-filter,border-color] duration-200
+           border-b border-transparent bg-transparent">
+    <a id="fav-link" href="{{ url_for('tersimpan') }}" class="{{ lnk }} hidden p-2" aria-label="Tersimpan"
+      title="Tersimpan">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+        stroke-linecap="round" stroke-linejoin="round">
+        <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
+      </svg>
+    </a>
+    <div class="flex-1"></div>
+    <button id="mode" type="button" class="{{ lnk }} p-2" aria-label="Ganti mode terang atau gelap">
+      <svg id="mode-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+        stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+      </svg>
+    </button>
+  </header>
+
+  <!-- Fullscreen / Focus (pojok kanan bawah) — tetap seperti semula -->
   <button id="clean" type="button" class="{{ lnk }} fixed right-6 bottom-6 z-50 p-2" aria-label="Mode fokus"
     title="Mode fokus">
-
     <svg id="clean-icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
       stroke-linecap="round" stroke-linejoin="round">
-      <!-- expand -->
       <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7" />
     </svg>
   </button>
 
-  <a id="fav-link" href="{{ url_for('tersimpan') }}" class="{{ lnk }} clean-hide fixed left-6 top-6 hidden">Tersimpan</a>
   <main class="flex min-h-dvh items-center justify-center px-6 py-12">
     <div class="w-full max-w-lg">
       {% block content %}{% endblock %}
@@ -84,6 +80,23 @@
 
   <script src="{{ url_for('static', filename='fav.js') }}"></script>
   <script src="{{ url_for('static', filename='theme.js') }}"></script>
+  <script>
+    (function () {
+      const bar = document.getElementById("top-bar");
+      if (!bar) return;
+      const onScroll = () => {
+        if (window.scrollY > 10) {
+          bar.classList.add("bg-background/70", "backdrop-blur-md", "border-border");
+          bar.classList.remove("bg-transparent", "border-transparent");
+        } else {
+          bar.classList.remove("bg-background/70", "backdrop-blur-md", "border-border");
+          bar.classList.add("bg-transparent", "border-transparent");
+        }
+      };
+      window.addEventListener("scroll", onScroll, { passive: true });
+      onScroll();
+    })();
+  </script>
   {% block scripts %}{% endblock %}
 </body>
 

@@ -202,7 +202,7 @@ def puisi_custom(token: str):
 
 @app.get("/tersimpan")
 def tersimpan():
-    return render_template("tersimpan.html")  # daftar dibaca browser dari localStorage
+    return render_template("tersimpan.html")
 
 
 @app.get("/puisi")

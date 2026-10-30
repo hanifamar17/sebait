@@ -57,3 +57,22 @@ html:not([data-clean="true"]) .clean-hide {
   pointer-events: auto;
   transition: opacity 0.3s ease;
 }
+
+/* cursor pointer untuk semua elemen interaktif */
+button,
+[type="button"],
+[type="submit"],
+[type="reset"],
+[role="button"],
+a,
+label[for],
+select,
+summary {
+  cursor: pointer;
+}
+
+button:disabled,
+[type="button"]:disabled,
+[type="submit"]:disabled {
+  cursor: not-allowed;
+}

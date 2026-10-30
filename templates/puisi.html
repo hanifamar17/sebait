@@ -4,69 +4,114 @@
 {% block content %}
 {# Blok ini selalu setinggi kartu 9:16, jadi posisi kontrol di kanan tidak bergeser saat rasio diganti.
 Kartu rasio lain berada di tengah area itu. Lebar maksimum kartu: angka terakhir di clamp(). #}
-<div class="mx-auto flex w-full max-w-lg items-start gap-4">
-  <!-- kartu -->
-  <div class="min-w-0 flex-1">
-    <a href="{{ p.back }}" class="icon-btn clean-hide" aria-label="Kembali" title="Kembali">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
-        stroke-linecap="round" stroke-linejoin="round">
-        <path d="M19 12H5" />
-        <path d="M12 19l-7-7 7-7" />
-      </svg>
-    </a>
-    <div class="mt-3 flex w-full max-w-[clamp(180px,calc((100dvh_-_200px)*9/16),450px)] items-center"
-      style="aspect-ratio: 9 / 16">
-      <div id="story-wrap" class="relative w-full" style="aspect-ratio: 9 / 16">
-        <canvas id="story" class="absolute inset-0 h-full w-full rounded-md bg-card object-contain"
-          style="aspect-ratio: 9 / 16" aria-label="Pratinjau kartu story"></canvas>
-        <canvas id="story-next"
-          class="pointer-events-none absolute inset-0 h-full w-full rounded-md object-contain opacity-0"
-          style="aspect-ratio: 9 / 16" aria-hidden="true"></canvas>
+<div class="relative mx-auto w-full max-w-sm">
+  <div class="flex items-start gap-4">
+    <!-- kartu -->
+    <div class="min-w-0 flex-1">
+      <a href="{{ p.back }}" class="icon-btn clean-hide" aria-label="Kembali" title="Kembali">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+          stroke-linecap="round" stroke-linejoin="round">
+          <path d="M19 12H5" />
+          <path d="M12 19l-7-7 7-7" />
+        </svg>
+      </a>
+      <div class="mt-3 flex w-full max-w-[clamp(180px,calc((100dvh_-_200px)*9/16),450px)] items-center mx-auto"
+        style="aspect-ratio: 9 / 16">
+        <div id="story-wrap" class="relative w-full" style="aspect-ratio: 9 / 16">
+          <canvas id="story" class="absolute inset-0 h-full w-full rounded-md bg-card object-contain"
+            style="aspect-ratio: 9 / 16" aria-label="Pratinjau kartu story"></canvas>
+          <canvas id="story-next"
+            class="pointer-events-none absolute inset-0 h-full w-full rounded-md object-contain opacity-0"
+            style="aspect-ratio: 9 / 16" aria-hidden="true"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- kontrol desktop (hanya md ke atas) -->
+    <div class="clean-hide hidden md:flex shrink-0 flex-col items-center gap-3">
+      <!-- unduh -->
+      <button id="download" type="button" class="icon-btn" aria-label="Unduh" title="Unduh">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+          stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+          <polyline points="7 10 12 15 17 10" />
+          <line x1="12" y1="15" x2="12" y2="3" />
+        </svg>
+      </button>
+      <!-- bagikan -->
+      <button id="share" type="button" class="icon-btn hidden" aria-label="Bagikan" title="Bagikan">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+          stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="18" cy="5" r="3" />
+          <circle cx="6" cy="12" r="3" />
+          <circle cx="18" cy="19" r="3" />
+          <line x1="8.59" y1="13.51" x2="15.42" y2="17.49" />
+          <line x1="15.41" y1="6.51" x2="8.59" y2="10.49" />
+        </svg>
+      </button>
+      <!-- rasio kartu -->
+      <div class="flex flex-col gap-1" role="group" aria-label="Rasio kartu">
+        <button type="button" class="ratio-btn" data-ratio="9:16" aria-pressed="true" title="Story (9:16)">9:16</button>
+        <button type="button" class="ratio-btn" data-ratio="4:5" aria-pressed="false" title="Feed (4:5)">4:5</button>
+        <button type="button" class="ratio-btn" data-ratio="1:1" aria-pressed="false" title="Kotak (1:1)">1:1</button>
+      </div>
+      <!-- palette 1 kolom -->
+      <div class="mt-2 flex flex-col gap-2.5">
+        {% set current = p.theme %}{% set vertical = true %}{% include "_palet.html" %}
       </div>
     </div>
   </div>
 
-  <!-- kontrol vertikal: sejajar tombol kembali, posisi tetap -->
-  <div class="clean-hide flex shrink-0 flex-col items-center gap-3">
-    <!-- unduh -->
-    <button id="download" type="button" class="icon-btn" aria-label="Unduh" title="Unduh">
+  <!-- kontrol mobile: tombol 3 titik + panel (hanya < md) -->
+  <div class="clean-hide absolute right-0 top-0 z-20 md:hidden">
+    <button id="controls-toggle" type="button" class="icon-btn"
+      aria-label="Kontrol" title="Kontrol" aria-expanded="false" aria-controls="controls-panel">
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
         stroke-linecap="round" stroke-linejoin="round">
-        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-        <polyline points="7 10 12 15 17 10" />
-        <line x1="12" y1="15" x2="12" y2="3" />
+        <circle cx="12" cy="5" r="1.5" fill="currentColor" />
+        <circle cx="12" cy="12" r="1.5" fill="currentColor" />
+        <circle cx="12" cy="19" r="1.5" fill="currentColor" />
       </svg>
     </button>
 
-    <!-- bagikan -->
-    <button id="share" type="button" class="icon-btn hidden" aria-label="Bagikan" title="Bagikan">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
-        stroke-linecap="round" stroke-linejoin="round">
-        <circle cx="18" cy="5" r="3" />
-        <circle cx="6" cy="12" r="3" />
-        <circle cx="18" cy="19" r="3" />
-        <line x1="8.59" y1="13.51" x2="15.42" y2="17.49" />
-        <line x1="15.41" y1="6.51" x2="8.59" y2="10.49" />
-      </svg>
-    </button>
-
-    <!-- rasio kartu -->
-    <div class="flex flex-col gap-1" role="group" aria-label="Rasio kartu">
-      <button type="button" class="ratio-btn" data-ratio="9:16" aria-pressed="true" title="Story (9:16)">9:16</button>
-      <button type="button" class="ratio-btn" data-ratio="4:5" aria-pressed="false" title="Feed (4:5)">4:5</button>
-      <button type="button" class="ratio-btn" data-ratio="1:1" aria-pressed="false" title="Kotak (1:1)">1:1</button>
-    </div>
-
-    <!-- palette 1 kolom -->
-    <div class="mt-2 flex flex-col gap-2.5">
-      {% set current = p.theme %}{% set vertical = true %}{% include "_palet.html" %}
+    <div id="controls-panel"
+      class="hidden absolute right-0 top-full mt-2 flex flex-col items-center gap-3
+             rounded-xl border border-border bg-card p-3 shadow-lg">
+      <!-- unduh -->
+      <button type="button" class="icon-btn mobile-download" aria-label="Unduh" title="Unduh">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+          stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+          <polyline points="7 10 12 15 17 10" />
+          <line x1="12" y1="15" x2="12" y2="3" />
+        </svg>
+      </button>
+      <!-- bagikan (tampil jika Web Share tersedia) -->
+      <button type="button" class="icon-btn hidden mobile-share" aria-label="Bagikan" title="Bagikan">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+          stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="18" cy="5" r="3" />
+          <circle cx="6" cy="12" r="3" />
+          <circle cx="18" cy="19" r="3" />
+          <line x1="8.59" y1="13.51" x2="15.42" y2="17.49" />
+          <line x1="15.41" y1="6.51" x2="8.59" y2="10.49" />
+        </svg>
+      </button>
+      <!-- rasio kartu -->
+      <div class="flex flex-col gap-1" role="group" aria-label="Rasio kartu">
+        <button type="button" class="ratio-btn" data-ratio="9:16" aria-pressed="true" title="Story (9:16)">9:16</button>
+        <button type="button" class="ratio-btn" data-ratio="4:5" aria-pressed="false" title="Feed (4:5)">4:5</button>
+        <button type="button" class="ratio-btn" data-ratio="1:1" aria-pressed="false" title="Kotak (1:1)">1:1</button>
+      </div>
+      <!-- palette 1 kolom -->
+      <div class="mt-2 flex flex-col gap-2.5">
+        {% set current = p.theme %}{% set vertical = true %}{% include "_palet.html" %}
+      </div>
     </div>
   </div>
 </div>
-
 <script type="application/json" id="data">{{ p|tojson }}</script>
 {% endblock %}
-
 {% block scripts %}
 <script src="{{ url_for('static', filename='palet.js') }}"></script>
 <script src="{{ url_for('static', filename='story.js') }}"></script>
@@ -81,21 +126,16 @@ Kartu rasio lain berada di tengah area itu. Lebar maksimum kartu: angka terakhir
     color: var(--muted-foreground);
     transition: color .15s, background .15s, transform .1s;
   }
-
   .icon-btn.hidden {
     display: none;
   }
-
-  /* tanpa ini, display di atas mengalahkan .hidden Tailwind */
   .icon-btn:hover {
     color: var(--foreground);
     background: color-mix(in srgb, var(--foreground) 6%, transparent);
   }
-
   .icon-btn:active {
     transform: scale(0.92);
   }
-
   .ratio-btn {
     width: 40px;
     height: 26px;
@@ -105,14 +145,96 @@ Kartu rasio lain berada di tengah area itu. Lebar maksimum kartu: angka terakhir
     color: var(--muted-foreground);
     transition: color .15s, background .15s;
   }
-
   .ratio-btn:hover {
     color: var(--foreground);
   }
-
   .ratio-btn[aria-pressed="true"] {
     color: var(--foreground);
     background: color-mix(in srgb, var(--foreground) 9%, transparent);
   }
 </style>
+<script>
+  (function () {
+    const toggle = document.getElementById('controls-toggle');
+    const panel = document.getElementById('controls-panel');
+    if (!toggle || !panel) return;
+
+    let ignoreOutsideClick = false;
+
+    function closePanel() {
+      panel.classList.add('hidden');
+      toggle.setAttribute('aria-expanded', 'false');
+    }
+
+    function openPanel() {
+      panel.classList.remove('hidden');
+      toggle.setAttribute('aria-expanded', 'true');
+    }
+
+    toggle.addEventListener('click', function (e) {
+      e.stopPropagation();
+      if (panel.classList.contains('hidden')) openPanel();
+      else closePanel();
+    });
+
+    // tutup hanya jika klik di luar panel & bukan saat kita sedang proxy-klik
+    document.addEventListener('click', function (e) {
+      if (ignoreOutsideClick) return;
+      if (!panel.contains(e.target) && !toggle.contains(e.target)) {
+        closePanel();
+      }
+    });
+
+    const desktopDownload = document.getElementById('download');
+    const desktopShare = document.getElementById('share');
+    const mobileDownload = panel.querySelector('.mobile-download');
+    const mobileShare = panel.querySelector('.mobile-share');
+
+    // proxy unduh → desktop (dengan flag agar menu tidak tertutup)
+    if (mobileDownload && desktopDownload) {
+      mobileDownload.addEventListener('click', function (e) {
+        e.stopPropagation();
+        ignoreOutsideClick = true;
+        desktopDownload.click();
+        setTimeout(function () { ignoreOutsideClick = false; }, 0);
+      });
+    }
+
+    // proxy bagikan → desktop
+    if (mobileShare && desktopShare) {
+      mobileShare.addEventListener('click', function (e) {
+        e.stopPropagation();
+        ignoreOutsideClick = true;
+        desktopShare.click();
+        setTimeout(function () { ignoreOutsideClick = false; }, 0);
+      });
+    }
+
+    // tampilkan tombol share di mobile jika desktop juga menampilkannya
+    function syncShareVisibility() {
+      if (!desktopShare || !mobileShare) return;
+      if (desktopShare.classList.contains('hidden')) {
+        mobileShare.classList.add('hidden');
+      } else {
+        mobileShare.classList.remove('hidden');
+      }
+    }
+    // cek awal + pantau perubahan class (story.js biasanya menghapus .hidden)
+    syncShareVisibility();
+    if (desktopShare) {
+      const obs = new MutationObserver(syncShareVisibility);
+      obs.observe(desktopShare, { attributes: true, attributeFilter: ['class'] });
+    }
+
+    // rasio: biarkan story.js menangani semua .ratio-btn (termasuk yang di panel mobile)
+    // hanya sinkronkan tampilan aria-pressed di dalam panel
+    panel.querySelectorAll('.ratio-btn').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        panel.querySelectorAll('.ratio-btn').forEach(function (b) {
+          b.setAttribute('aria-pressed', b === btn ? 'true' : 'false');
+        });
+      });
+    });
+  })();
+</script>
 {% endblock %}
