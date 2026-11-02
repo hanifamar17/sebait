@@ -187,14 +187,13 @@ def make_custom(token: str) -> dict | None:
 
 
 def with_links(p: dict) -> dict:
-    """Tautan 'jadikan story' dan 'kembali', sesuai jenis puisi (acak / tulisan sendiri)."""
     p["site"] = SITE_NAME
     if p.get("token"):
         p["story"] = url_for("puisi_custom", token=p["token"])
-        p["back"] = url_for("tulis", t=p["token"])  # kembali ke form, terisi
-        p["edit"] = p["back"]
+        p["back"] = url_for("index", t=p["token"])   # default: balik ke index
+        p["edit"] = url_for("tulis", t=p["token"])
     else:
-        p["story"] = url_for("puisi_custom", token=p["tok"])
+        p["story"] = url_for("puisi_custom", token=p["tok"], b=p["bid"])
         p["back"] = url_for("index", b=p["bid"])
         p["edit"] = url_for("tulis")
     return p
@@ -232,7 +231,13 @@ def puisi_custom(token: str):
     p = make_custom(token)
     if p is None:
         abort(404)
-    return render_template("puisi.html", p=with_links(p))
+    p = with_links(p)
+    bid = request.args.get("b", "")
+    if request.args.get("dari") == "tulis":
+        p["back"] = url_for("tulis", t=token)
+    elif bid in BY_ID:
+        p["back"] = url_for("index", b=bid)
+    return render_template("puisi.html", p=p)
 
 
 @app.get("/tersimpan")
@@ -263,10 +268,10 @@ def tulis():
         if not (err or serr):
             token = encode_bait(lines, source, tema)
             if request.form.get("aksi") == "story":  # tombol "Jadikan story"
-                return redirect(url_for("puisi_custom", token=token))
+                return redirect(url_for("puisi_custom", token=token, dari="tulis"))
             return redirect(url_for("index", t=token))  # default: tampil seperti beranda
         ctx.update(text=text, sumber=sumber, tema=tema, error=err or serr)
-    else:  # dari tombol Kembali di halaman story: isi ulang form
+    else:  # dari tombol Kembali / Sunting: isi ulang form
         res = decode_bait(request.args.get("t", ""))
         if res:
             ctx.update(text="\n".join(res[0]), sumber=res[1], tema=res[2] or THEMES[0])
