@@ -1,112 +1,83 @@
 # Sebait
 
-Aplikasi web generator puisi pendek berbahasa Indonesia. Setiap kali halaman dimuat, sistem akan menampilkan satu bait secara acak dari koleksi teks yang tersedia. Tampilan aplikasi dilengkapi dengan perubahan dinamis pada warna latar belakang dan aksen. Bait yang ditampilkan dapat diekspor menjadi kartu cerita (*story card*) berrasio 9:16 dan diunduh dalam format PNG.
+Generator puisi pendek berbahasa Indonesia. Tiap bait bisa dibagikan lewat tautan, ditulis sendiri, disimpan, atau diekspor jadi kartu story PNG.
 
-Dikembangkan menggunakan **Flask** dan **Tailwind CSS**, serta menerapkan sistem token warna berbasis *shadcn/ui*.
+Dibuat dengan **Flask** dan **Tailwind CSS** (token warna ala *shadcn/ui*).
 
----
+## Fitur
 
-## Fitur Utama
+- **Bait acak:** tombol *Lain*, tautan `/?b=<id>` stabil untuk dibagikan.
+- **Tulis sendiri:** `/tulis`, bait dikodekan ke URL (tanpa database).
+- **Tersimpan:** favorit disimpan di peramban (`localStorage`).
+- **Kartu story:** unduh PNG, rasio 9:16 / 4:5 / 1:1.
+- **Tema:** `embun`, `senja`, `lumut`, `tanah`; masing-masing terang & gelap.
+- **Mode fokus:** layar penuh, hanya di beranda dan halaman story.
 
-- **Bait Acak & Tautan Langsung:** Menampilkan puisi secara acak yang dapat dibagikan melalui URL spesifik.
-- **Mode Fokus:** Tampilan layar penuh (*fullscreen*) dengan menyembunyikan elemen kontrol untuk memudahkan dokumentasi visual/tangkapan layar.
-- **Sistem Tema Warna:** Memiliki empat palet warna (`embun`, `senja`, `lumut`, `tanah`), masing-masing mendukung mode terang (*light mode*) dan gelap (*dark mode*).
-- **Ekspor Kartu Story:** Mengonversi tampilan bait puisi menjadi gambar format PNG berukuran 9:16.
+## Menjalankan
 
----
+Prasyarat: Python 3.10+ dan Node.js.
 
-## Petunjuk Pengoperasian
+```bash
+python -m venv venv
+venv\Scripts\activate            # Linux/macOS: source venv/bin/activate
+pip install -r requirements.txt
+npm install
+```
 
-### Prasyarat
-- Python 3.10 atau versi yang lebih baru.
+Build CSS (terminal terpisah, biarkan jalan saat pengembangan):
 
-### Langkah Instalasi dan Pengoperasian
+```bash
+npx @tailwindcss/cli -i static/input.css -o static/output.css --watch
+```
 
-1. Buat dan aktifkan lingkungan virtual (*virtual environment*):
-   ```bash
-   python -m venv venv
-   source venv/bin/activate       # Pengguna Windows: venv\Scripts\activate
-   ```
+Jalankan aplikasi, lalu buka `http://127.0.0.1:5000`:
 
-2. Pasang dependensi yang dibutuhkan:
-   ```bash
-   pip install -r requirements.txt
-   ```
+```bash
+python app.py
+```
 
-3. Jalankan aplikasi:
-   ```bash
-   python app.py
-   ```
+Terminal menampilkan jumlah bait yang dimuat dari `bait/`. Jika kosong, server berhenti.
 
-4. Akses aplikasi melalui peramban web pada alamat: `http://127.0.0.1:5000`
-
-> **Catatan:** Pada saat aplikasi dinyalakan, terminal akan menampilkan jumlah bait yang berhasil dimuat dari direktori `bait/`. Jika direktori `bait/` tidak berisi berkas teks, server akan menghentikan proses secara otomatis.
-
----
-
-## Struktur Proyek
+## Struktur
 
 ```text
 puisi/
 ├── app.py
 ├── requirements.txt
-├── bait/                 
-│   ├── hujan.txt
-│   ├── malam.txt
-│   └── jalan-pulang.txt
+├── package.json
+├── bait/                 # koleksi bait (.txt)
 ├── static/
-│   ├── app.css
-│   ├── theme.js
-│   └── story.js
+│   ├── input.css         # sumber Tailwind
+│   ├── output.css        # hasil build
+│   ├── app.css           # variabel tema
+│   └── *.js              # theme, palet, fav, story
 └── templates/
-    ├── base.html
-    ├── index.html
-    ├── puisi.html
-    ├── _poem.html
-    └── _button.html
 ```
 
-Untuk menambahkan halaman baru, lakukan ekstensi pada templat `base.html` dan definisikan isi pada blok `content`.
+## Menambah Bait
 
----
-
-## Menambahkan Koleksi Bait Baru
-
-Tambahkan berkas berformat `.txt` ke dalam direktori `bait/` dengan struktur format berikut:
+Buat `bait/nama.txt` (UTF-8):
 
 ```text
 # Judul Koleksi
 
-Baris pertama puisi.
-Baris kedua puisi.
-
-Bait berikutnya terdiri dari baris pertama.
+Baris pertama.
 Baris kedua.
-Baris ketiga.
+
+Bait berikutnya.
+Baris kedua.
+— Penulis
 ```
 
-**Ketentuan Format:**
-- Gunakan baris kosong untuk memisahkan antarbait.
-- Baris yang diawali dengan `# Judul` akan digunakan sebagai nama sumber yang ditampilkan di bawah puisi.
-- Apabila terdapat baris penulisan spesifik seperti `— Nama Penulis` di dalam bait, atribut sumber secara khusus akan menggantikan judul utama koleksi.
-- Berkas yang diawali dengan karakter garis bawah (`_`) akan diabaikan oleh sistem.
-- Pastikan berkas disimpan menggunakan enkoding **UTF-8**.
-- Lakukan pemuatan ulang (*restart*) server setelah menambahkan atau mengubah berkas dalam direktori `bait/`.
+- Baris kosong memisahkan bait.
+- `# Judul` = sumber yang tampil di bawah puisi; `— Penulis` menggantikannya untuk bait itu.
+- Berkas berawalan `_` diabaikan.
+- Restart server setelah mengubah `bait/`.
+- Ubah isi atau urutan bait mengubah id `?b=` bait itu.
 
----
-
-## Catatan Lingkungan Produksi
-
-1. **Tailwind CSS:** Saat ini Tailwind CSS dihubungkan menggunakan CDN untuk keperluan pengembangan (*development*). Untuk lingkungan produksi (*production*), disarankan melakukan kompilasi CSS menggunakan Tailwind CLI.
-2. **Server Web:** Perintah `python app.py` menjalankan server dalam mode *debug*. Gunakan WSGI server seperti **Gunicorn** untuk kebutuhan deployment produksi.
-3. **Konektivitas:** Pengubahan tipe huruf (*font*) dan styling Tailwind memerlukan koneksi internet aktif. Tampilan tanpa koneksi internet akan beralih (*fallback*) ke font bawaan (*Georgia*) dengan styling terbatas.
-
----
 
 ## Lisensi
 
-## Hak Cipta & Lisensi
+© 2026 Hanif Amar. All Rights Reserved.
 
-© 2026 Hanif Amar. Hak Cipta Dilindungi Undang-Undang (*All Rights Reserved*).
-
-Kode sumber dan konten dalam repositori ini disediakan hanya untuk keperluan demonstrasi/portofolio. Anda tidak diperkenankan untuk menyalin, memodifikasi, mendistribusikan, atau menggunakan kode ini tanpa izin tertulis dari pemilik hak cipta.
+Kode dan konten hanya untuk demonstrasi/portofolio. Dilarang menyalin, memodifikasi, atau mendistribusikan tanpa izin tertulis.

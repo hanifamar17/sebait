@@ -64,6 +64,7 @@
   </header>
 
   <!-- Fullscreen / Focus (pojok kanan bawah) — tetap seperti semula -->
+  {% if clean|default(false) %}
   <button id="clean" type="button" class="{{ lnk }} fixed right-6 bottom-6 z-50 p-2" aria-label="Mode fokus"
     title="Mode fokus">
     <svg id="clean-icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
@@ -71,6 +72,7 @@
       <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7" />
     </svg>
   </button>
+  {% endif %}
 
   <main class="flex min-h-dvh items-center justify-center px-6 py-12">
     <div class="w-full max-w-lg">

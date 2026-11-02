@@ -1,7 +1,8 @@
 @import "tailwindcss";
+@source "../templates";
+@source "./palet.js";
 
-/* mapping supaya class bg-background, text-accent, dll. jalan */
-@theme {
+@theme inline {
   --color-background: var(--background);
   --color-card: var(--card);
   --color-foreground: var(--foreground);

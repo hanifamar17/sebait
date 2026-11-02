@@ -28,7 +28,6 @@ MAX_LINES = 8     # jumlah baris
 MARK = "_"        # penanda gaya: _kata_ = miring berwarna (tidak dihitung sebagai karakter)
 MARK_MAX = 24     # jumlah tanda
 
-
 def load_bait() -> list[dict]:
     """bait/*.txt. Satu bait = blok baris, dipisah baris kosong.
     '# Judul'   -> judul koleksi (sumber yang tampil di bawah puisi)
@@ -61,14 +60,32 @@ if not BAIT:
         f"Tidak ada bait. Taruh file .txt di {BASE / 'bait'} "
         "(contoh: bait/hujan.txt) lalu jalankan ulang."
     )
-print(f"{len(BAIT)} bait dimuat dari {BASE / 'bait'}")
+
+def bait_id(item: dict) -> str:
+    return format(zlib.crc32("\n".join(item["lines"]).encode("utf-8")), "08x")
+
+BY_ID = {bait_id(b): b for b in BAIT}
+
+def poem_of(item: dict, seed: int, theme: str) -> dict:
+    ls = item["lines"]
+    marked = ls[:1] + [f"{MARK}{l}{MARK}" for l in ls[1:]]
+    return {"seed": seed, "source": item["source"], "theme": theme, "lines": ls,
+            "tok": encode_bait(marked, item["source"], theme), "bid": bait_id(item)}
 
 
 def make_poem(seed: int) -> dict:
-    rng = random.Random(seed)  # seed sama = bait sama, di restart mana pun
+    rng = random.Random(seed)
     item = rng.choice(BAIT)
-    theme = rng.choice(THEME_BY_SOURCE.get(item["key"], THEMES))
-    return {"seed": seed, "source": item["source"], "theme": theme, "lines": item["lines"]}
+    return poem_of(item, seed, rng.choice(THEME_BY_SOURCE.get(item["key"], THEMES)))
+
+
+def poem_by_id(bid: str) -> dict | None:
+    item = BY_ID.get(bid)
+    if not item:
+        return None
+    h = int(bid, 16)
+    theme = random.Random(h).choice(THEME_BY_SOURCE.get(item["key"], THEMES))
+    return poem_of(item, 100_000 + h % 900_000, theme)
 
 
 def new_seed() -> int:
@@ -121,15 +138,27 @@ def encode_bait(lines: list[str], source: str = "", theme: str = "") -> str:
     payload = {"l": lines, "s": source}
     if theme in THEMES:
         payload["c"] = theme
-    raw = json.dumps(payload, ensure_ascii=False, separators=(",", ":"))
-    return base64.urlsafe_b64encode(raw.encode("utf-8")).decode("ascii").rstrip("=")
+    raw = json.dumps(payload, ensure_ascii=False, separators=(",", ":")).encode("utf-8")
+    co = zlib.compressobj(9, zlib.DEFLATED, -15)
+    z = co.compress(raw) + co.flush()
+    use_z = len(z) < len(raw)  # bait pendek kadang tidak menyusut
+    b = base64.urlsafe_b64encode(z if use_z else raw).decode("ascii").rstrip("=")
+    return ("z" if use_z else "") + b
 
+def _unpack(token: str) -> dict:
+    if token[0] == "z":  # token JSON polos selalu berawalan "ey", jadi "z" aman sebagai penanda
+        t = token[1:]
+        raw = zlib.decompressobj(-15).decompress(
+            base64.urlsafe_b64decode(t + "=" * (-len(t) % 4)), 4096)  # batas 4 KB
+    else:
+        raw = base64.urlsafe_b64decode(token + "=" * (-len(token) % 4))
+    return json.loads(raw.decode("utf-8"))
 
 def decode_bait(token: str) -> tuple[list[str], str, str] | None:
     if not token or len(token) > 1600:
         return None
     try:
-        data = json.loads(base64.urlsafe_b64decode(token + "=" * (-len(token) % 4)).decode("utf-8"))
+        data = _unpack(token)
         text, src, theme = "\n".join(data["l"]), data.get("s", ""), data.get("c", "")
     except (ValueError, UnicodeDecodeError, KeyError, TypeError):
         return None
@@ -165,8 +194,8 @@ def with_links(p: dict) -> dict:
         p["back"] = url_for("tulis", t=p["token"])  # kembali ke form, terisi
         p["edit"] = p["back"]
     else:
-        p["story"] = url_for("puisi", seed=p["seed"])
-        p["back"] = url_for("index", s=p["seed"])
+        p["story"] = url_for("puisi_custom", token=p["tok"])
+        p["back"] = url_for("index", b=p["bid"])
         p["edit"] = url_for("tulis")
     return p
 
@@ -178,6 +207,12 @@ def index():
     token = request.args.get("t")
     if token:
         p = make_custom(token)
+        if p:
+            return render_template("index.html", p=with_links(p))
+        return redirect(url_for("index"))
+    bid = request.args.get("b")
+    if bid:
+        p = poem_by_id(bid) if re.fullmatch(r"[0-9a-f]{8}", bid) else None
         if p:
             return render_template("index.html", p=with_links(p))
         return redirect(url_for("index"))
@@ -240,8 +275,9 @@ def tulis():
 
 @app.get("/api/puisi")
 def api_puisi():
-    return jsonify(make_poem(new_seed()))
+    return jsonify(with_links(make_poem(new_seed())))
 
+print([b["key"] for b in BAIT if decode_bait(encode_bait(b["lines"][:1] + [f"_{l}_" for l in b["lines"][1:]], b["source"])) is None])
 
 if __name__ == "__main__":
     app.run(debug=True)

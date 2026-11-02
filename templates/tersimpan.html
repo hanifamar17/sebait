@@ -35,8 +35,11 @@
             const row = el("div", "flex items-start gap-3 px-2 py-5");
             const a = el("a", "min-w-0 flex-1 font-poem");
 
-            // URL dari key (s:123 / t:abc) — lebih konsisten daripada f.url
-            if (f.key.startsWith("s:")) {
+            if (f.key.startsWith("b:")) {
+                a.href = "/?b=" + encodeURIComponent(f.key.slice(2));
+            } else if (f.tok) {
+                a.href = "/?t=" + encodeURIComponent(f.tok);
+            } else if (f.key.startsWith("s:")) {
                 a.href = "/?s=" + encodeURIComponent(f.key.slice(2));
             } else if (f.key.startsWith("t:")) {
                 a.href = "/?t=" + encodeURIComponent(f.key.slice(2));
