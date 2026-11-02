@@ -277,7 +277,5 @@ def tulis():
 def api_puisi():
     return jsonify(with_links(make_poem(new_seed())))
 
-print([b["key"] for b in BAIT if decode_bait(encode_bait(b["lines"][:1] + [f"_{l}_" for l in b["lines"][1:]], b["source"])) is None])
-
 if __name__ == "__main__":
     app.run(debug=True)
